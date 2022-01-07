@@ -23,7 +23,7 @@ contract Campaign {
         require(msg.sender == manager);
         _;
     }
-    
+
     modifier isAContributor () {
         require(contributors[msg.sender]);
         _;
@@ -42,7 +42,6 @@ contract Campaign {
       contributors[msg.sender] = true;
     }
     
-
     function createRequest (string description, uint valueInEther, address receipient) public restricted  {
         Request memory newRequest = Request({
             description:description,
@@ -59,6 +58,13 @@ contract Campaign {
         require(!request.voters[msg.sender]);
         request.approvalCount ++;
         request.voters[msg.sender]=true;
-        
+    }
+
+    function finalizeRequest (uint index) public restricted {
+        Request storage request = requests[index];
+        require(!request.complete);
+        require(request.approvalCount >= contributorsCount/2);
+        request.receipient.transfer(request.valueInEther*1000000000000000000);
+        request.complete = true;  
     }
 }
