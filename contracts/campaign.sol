@@ -8,7 +8,21 @@ contract Campaign {
     mapping(address => bool) public contributors;
     uint public contributorsCount;
 
-
+    struct Request{
+        string description;
+        uint valueInEther;
+        address receipient;
+        bool complete;
+        uint approvalCount;
+        mapping (address => bool) voters;
+        
+    }
+    Request[] public requests;
+    
+    modifier restricted () {
+        require(msg.sender == manager);
+        _;
+    }
     
     function Campaign(uint minimum) public {
         manager = msg.sender;
@@ -21,5 +35,17 @@ contract Campaign {
          contributorsCount++;
         }
       contributors[msg.sender] = true;
+    }
+    
+
+    function createRequest (string description, uint valueInEther, address receipient) public restricted  {
+        Request memory newRequest = Request({
+            description:description,
+            valueInEther:valueInEther,
+            receipient:receipient,
+            complete:false,
+            approvalCount:0
+        });
+        requests.push(newRequest);
     }
 }
