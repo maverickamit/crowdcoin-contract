@@ -18,9 +18,14 @@ contract Campaign {
         
     }
     Request[] public requests;
-    
+
     modifier restricted () {
         require(msg.sender == manager);
+        _;
+    }
+    
+    modifier isAContributor () {
+        require(contributors[msg.sender]);
         _;
     }
     
@@ -47,5 +52,13 @@ contract Campaign {
             approvalCount:0
         });
         requests.push(newRequest);
+    }
+
+    function approveRequest (uint index) public isAContributor {
+        Request storage request = requests[index];
+        require(!request.voters[msg.sender]);
+        request.approvalCount ++;
+        request.voters[msg.sender]=true;
+        
     }
 }
