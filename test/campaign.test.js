@@ -70,4 +70,12 @@ describe("Campaigns", () => {
       assert(err.results);
     }
   });
+
+  it("allows manager to create a request", async () => {
+    await campaign.methods
+      .createRequest("Buy batteries", 100, accounts[1])
+      .send({ from: accounts[0], gas: "1500000" });
+    const newRequest = await campaign.methods.requests(0).call();
+    assert.equal("Buy batteries", newRequest.description);
+  });
 });
