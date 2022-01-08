@@ -22,7 +22,7 @@ beforeEach(async () => {
     })
     .send({ from: accounts[0], gas: "1500000" });
 
-  await campaignFactory.methods.createCampaign("0").send({
+  await campaignFactory.methods.createCampaign("100").send({
     from: accounts[0],
     gas: "1500000",
   });
@@ -56,5 +56,18 @@ describe("Campaigns", () => {
       .contributors(accounts[1])
       .call();
     assert(isContributor);
+  });
+
+  it("requires a minimum contribution", async () => {
+    try {
+      await campaign.methods
+        .contribute()
+        .send({ value: "20", from: accounts[1] });
+      //   If contribute transaction is successful with less than minimum amount, new error is thrown.
+      //   But this error object doesn't have same structure as the error object from transaction failure.
+      throw new Error();
+    } catch (err) {
+      assert(err.results);
+    }
   });
 });
