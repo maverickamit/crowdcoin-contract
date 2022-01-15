@@ -16,10 +16,10 @@ const deploy = async () => {
   console.log("Contract is being deployed from", accounts[0]);
 
   const newContractInstance = await new web3.eth.Contract(
-    JSON.parse(compiledCampaignFactory.interface)
+    compiledCampaignFactory.abi
   )
     .deploy({
-      data: compiledCampaignFactory.bytecode,
+      data: compiledCampaignFactory.evm.bytecode.object,
     })
     .send({ from: accounts[0] });
 
