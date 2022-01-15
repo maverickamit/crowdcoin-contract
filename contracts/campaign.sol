@@ -1,37 +1,39 @@
+// SPDX-License-Identifier: GPL-3.0
 
-pragma solidity ^0.4.17;
+pragma solidity ^0.8.11;
 
-contract CampaignFactory{
+contract CampaignFactory {
+
     address[] public deployedCampaigns;
 
     function createCampaign(uint minimum) public{
-        address newCampaign = new Campaign(minimum, msg.sender);
-        deployedCampaigns.push(newCampaign);
+        Campaign newCampaign = new Campaign(minimum, msg.sender);
+        deployedCampaigns.push(address(newCampaign));
     }
 
-    function getDeployedCampaigns() public view returns (address[]){
+    function getDeployedCampaigns() public view returns (address[] memory ){
         return deployedCampaigns;
     }
-
 }
 
 contract Campaign {
-    
+
     address public manager;
     uint public minimumContribution;
     mapping(address => bool) public contributors;
     uint public contributorsCount;
-
+    
     struct Request{
         string description;
         uint valueInWei;
-        address receipient;
+        address payable receipient;
         bool complete;
-        uint approvalCount;
-        mapping (address => bool) voters;
-        
+        uint approvalCount;        
     }
-    Request[] public requests;
+    Request [] public requests;
+
+   //1st argument is the index of request. 2nd argument is the address of sender.
+    mapping (uint => mapping (address => bool)) public requestVoters;
 
     modifier restricted () {
         require(msg.sender == manager);
@@ -42,8 +44,8 @@ contract Campaign {
         require(contributors[msg.sender]);
         _;
     }
-    
-    function Campaign(uint minimum, address creator) public {
+
+    constructor (uint minimum, address creator) {
         manager = creator;
         minimumContribution = minimum;
     }
@@ -55,9 +57,9 @@ contract Campaign {
         }
       contributors[msg.sender] = true;
     }
-    
-    function createRequest (string description, uint valueInWei, address receipient) public restricted  {
-        Request memory newRequest = Request({
+
+    function createRequest (string memory description, uint valueInWei, address payable receipient) public restricted  {
+        Request memory newRequest =  Request({
             description:description,
             valueInWei:valueInWei,
             receipient:receipient,
@@ -66,26 +68,26 @@ contract Campaign {
         });
         requests.push(newRequest);
     }
-
+    
     function approveRequest (uint index) public isAContributor {
         Request storage request = requests[index];
-        require(!request.voters[msg.sender]);
-        request.approvalCount ++;
-        request.voters[msg.sender]=true;
+        require(!requestVoters[index][msg.sender]);
+        request.approvalCount ++; 
+        requestVoters[index][msg.sender]=true;
     }
-
+      
     function finalizeRequest (uint index) public restricted {
         Request storage request = requests[index];
         require(!request.complete);
         require(request.approvalCount >= contributorsCount/2);
         request.receipient.transfer(request.valueInWei);
-        request.complete = true;  
+        request.complete = true;
     }
 
     function getSummary() public view returns(uint,uint,uint,uint,address) {
         return (
             minimumContribution,
-            this.balance,
+            address(this).balance,
             requests.length,
             contributorsCount,
             manager
