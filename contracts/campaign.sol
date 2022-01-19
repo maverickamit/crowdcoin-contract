@@ -26,7 +26,7 @@ contract Campaign {
     struct Request{
         string description;
         uint valueInWei;
-        address payable receipient;
+        address payable recipient;
         bool complete;
         uint approvalCount;        
     }
@@ -58,11 +58,11 @@ contract Campaign {
       contributors[msg.sender] = true;
     }
 
-    function createRequest (string memory description, uint valueInWei, address payable receipient) public restricted  {
+    function createRequest (string memory description, uint valueInWei, address payable recipient) public restricted  {
         Request memory newRequest =  Request({
             description:description,
             valueInWei:valueInWei,
-            receipient:receipient,
+            recipient:recipient,
             complete:false,
             approvalCount:0
         });
@@ -80,7 +80,7 @@ contract Campaign {
         Request storage request = requests[index];
         require(!request.complete);
         require(request.approvalCount >= contributorsCount/2);
-        request.receipient.transfer(request.valueInWei);
+        request.recipient.transfer(request.valueInWei);
         request.complete = true;
     }
 
